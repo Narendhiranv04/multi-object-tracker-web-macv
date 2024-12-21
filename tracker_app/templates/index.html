@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Object Tracker</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Object Tracker</h1>
+
+        <!-- File Upload -->
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="video">Upload Video:</label>
+            <input type="file" id="video" name="video" accept="video/*" required />
+            <br />
+
+            <!-- Model Selector -->
+            <label for="model">Select Model:</label>
+            <select id="model" name="model">
+                <option value="sort">SORT</option>
+                <option value="deepsort">DeepSORT</option>
+            </select>
+            <br />
+
+            <!-- Submit Button -->
+            <button type="submit">Process</button>
+        </form>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" style="display: none;">
+            <label for="progress-bar">Processing Progress:</label>
+            <input type="range" id="progress-bar" min="0" max="100" value="0" disabled />
+            <span id="progress-text">0%</span>
+        </div>
+
+        <!-- Output Video -->
+        <div id="output-container" style="display: none;">
+            <h2>Output Video</h2>
+            <video id="output-video" controls>
+                <source id="video-source" src="" type="video/mp4" />
+                Your browser does not support the video tag.
+            </video>
+            <br />
+            <a id="download-link" href="#" download="output.mp4">Download Video</a>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <style>
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        const form = document.getElementById("upload-form");
+        const progressBar = document.getElementById("progress-bar");
+        const progressText = document.getElementById("progress-text");
+        const outputContainer = document.getElementById("output-container");
+        const videoSource = document.getElementById("video-source");
+        const downloadLink = document.getElementById("download-link");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            // Show progress bar immediately
+            progressBar.value = 0;
+            progressText.textContent = "0%";
+            outputContainer.style.display = "none";
+
+            // Start processing
+            const response = await fetch("/process", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                monitorProgress(data.output_path);
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        });
+
+        async function monitorProgress(outputPath) {
+            let interval = setInterval(async () => {
+                const progressRes = await fetch("/progress");
+                const progressData = await progressRes.json();
+
+                // Update progress bar
+                progressBar.value = progressData.progress;
+                progressText.textContent = `${progressData.progress}%`;
+
+                // Stop when processing is complete
+                if (progressData.progress >= 100) {
+                    clearInterval(interval);
+
+                    // Show output video and download link
+                    videoSource.src = outputPath;
+                    videoSource.type = "video/mp4"; // Ensure compatibility
+                    downloadLink.href = outputPath;
+                    outputContainer.style.display = "block";
+
+                    // Ensure video is preloaded and ready to play
+                    const video = document.getElementById("output-video");
+                    video.load(); // Reload video source
+                    video.addEventListener("loadeddata", () => {
+                        video.play(); // Auto-play when ready
+                    });
+                }
+            }, 1000); // Poll every second
+        }
+    </script>
+</body>
+</html>
+
