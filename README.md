@@ -51,19 +51,12 @@ The application processes video uploads, applies the selected tracking model, an
 ---
 
 ## **How to Run the Application**  
-```
+
 Step 1: **Clone this repository**  
 
-```bash
-git clone <repository_url>
-cd <repository_name>
-```
 
 Step 2: **Install dependencies**  
 
-```bash
-pip install -r requirements.txt
-```
 
 Step 3: **Start the application**  
 
