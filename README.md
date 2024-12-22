@@ -9,6 +9,12 @@ This project focuses on building a **multi-object tracking web application** usi
 
 The application processes video uploads, applies the selected tracking model, and outputs annotated videos for download.  
 
+
+![Screenshot from 2024-12-22 14-30-48](https://github.com/user-attachments/assets/f91f0a80-26f1-43f4-b300-8424e5b62ed1)
+
+
+
+
 ---
 
 ## **Features**  
